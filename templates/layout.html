@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Lottie Player -->
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.8s ease-in-out;
+      opacity: 0;
+      animation-fill-mode: forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .nav-pills .nav-link {
+      color: #ffffff;
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-pills .nav-link:hover:not(.active) {
+      background-color: #198754;
+      color: #ffffff;
+      transform: translateX(5px);
+      box-shadow: 0 0 8px rgba(25, 135, 84, 0.5);
+    }
+
+    .nav-pills .nav-link.active {
+      background-color: #198754 !important;
+      font-weight: bold;
+      color: #fff !important;
+    }
+
+    .sidebar-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .shadow-sm {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .alert {
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    #loader {
+      position: fixed;
+      z-index: 9999;
+      background: #f4f6f9;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100vh;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    #main-content {
+      margin-left: 250px;
+      width: calc(100% - 250px);
+    }
+
+    .content-wrapper {
+      padding: 20px;
+    }
+
+    /* Progress Bar */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background-color: #198754;
+      width: 0%;
+      z-index: 2000;
+      transition: width 0.4s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Progress Bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Loader -->
+  <div id="loader">
+    <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_j1adxtyb.json" background="transparent" speed="1" style="width: 150px; height: 150px;" autoplay></lottie-player>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="bg-dark text-white p-3 shadow-sm" id="sidebar">
+    <div class="sidebar-title mb-4">🌿</div>
+    <ul class="nav nav-pills flex-column gap-2">
+      <li class="nav-item">
+        <a href="{{ url_for('home') }}" class="nav-link {% if active_page=='home' %}active{% endif %}">🏠 Beranda</a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('upload') }}" class="nav-link {% if active_page=='upload' %}active{% endif %}">📤 Upload</a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('preprocessing') }}" class="nav-link {% if active_page=='preprocessing' %}active{% endif %}">🔄 Preprocessing</a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('model') }}" class="nav-link {% if active_page=='model' %}active{% endif %}">🧠 Model</a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ url_for('visualisasi') }}" class="nav-link {% if active_page=='visualisasi' %}active{% endif %}">📊 Visualisasi</a>
+      </li>
+    </ul>
+
+    <form method="post" action="{{ url_for('reset') }}" class="mt-4 text-center" onsubmit="return confirm('Yakin ingin mengulang semua tahapan?')">
+      <button class="btn btn-danger btn-sm" type="submit">🔁 Reset Sesi</button>
+    </form>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content" style="display: none;" class="fade-in">
+    <!-- Top Navbar -->
+    <nav class="navbar bg-light shadow-sm px-4">
+      <span class="navbar-brand mb-0 h4">{% block page_title %}Beranda{% endblock %}</span>
+    </nav>
+
+    <!-- Flash Messages & Page Content -->
+    <div class="content-wrapper">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'success' if category=='success' else 'warning' }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Loader Script -->
+  <script>
+    window.addEventListener('load', function () {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      document.body.style.overflow = 'auto';
+    });
+  </script>
+
+  <!-- Progress Bar Script -->
+  <script>
+    document.onreadystatechange = function () {
+      const bar = document.getElementById('progress-bar');
+      if (document.readyState === 'interactive') {
+        bar.style.width = '50%';
+      }
+      if (document.readyState === 'complete') {
+        bar.style.width = '100%';
+        setTimeout(() => {
+          bar.style.display = 'none';
+        }, 400);
+      }
+    };
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,332 @@
+{% extends 'layout.html' %}
+{% block title %}Upload Dataset{% endblock %}
+{% block page_title %}🟢 Upload Dataset{% endblock %}
+{% block content %}
+
+<style>
+  .upload-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px 20px;
+    max-width: 700px;
+    margin: 80px auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  .upload-container:hover {
+    transform: scale(1.01);
+    box-shadow: 0 0 25px rgba(0, 255, 200, 0.3);
+  }
+
+  .form-label {
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .btn-success {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    animation: pulse 2s infinite;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
+  }
+
+  .btn-success:hover {
+    background-color: #218838;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+  }
+
+  .loading-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+  .loading-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .cancel-btn {
+    margin-top: 20px;
+    padding: 8px 20px;
+    font-size: 14px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+  }
+
+  .cancel-btn:hover {
+    background-color: #bb2d3b;
+  }
+
+  .table td, .table th {
+    word-wrap: break-word;
+    white-space: normal !important;
+    max-width: 120px;
+    font-size: 12px;
+    padding: 6px;
+  }
+
+  .table th {
+    font-weight: 600;
+  }
+
+  .card {
+    overflow-x: auto;
+    font-size: 13px;
+  }
+
+  /* 🌟 Custom Pagination Style */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 0;
+  }
+
+  .page-item {
+    list-style: none;
+  }
+
+  .page-link {
+    display: inline-block;
+    background-color: transparent;
+    border: 1px solid #555;
+    color: #fff;
+    padding: 8px 14px;
+    min-width: 42px;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .page-link:hover {
+    background-color: #2e2e2e;
+  }
+
+  .page-item.active .page-link {
+    background-color: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+    font-weight: bold;
+  }
+
+  .page-item.disabled .page-link {
+    color: #999;
+    border: 1px solid #444;
+    pointer-events: none;
+    background-color: #1f1f1f;
+  }
+</style>
+
+<script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="text-center">
+    <dotlottie-player 
+      src="https://lottie.host/bb257a6c-1db2-4c84-9129-4797eb0e69c3/Dr5QAJHvTN.lottie"
+      background="transparent" 
+      speed="1" 
+      style="width: 250px; height: 250px;" 
+      loop autoplay>
+    </dotlottie-player>
+    <button class="cancel-btn" onclick="cancelLoading()">Batal</button>
+  </div>
+</div>
+
+<div class="upload-container text-center">
+  <dotlottie-player 
+    src="https://lottie.host/961d77fc-9b96-4c08-8c91-875e389a8601/m8h506Rq7L.lottie"
+    background="transparent" 
+    speed="1" 
+    style="width: 300px; height: 300px; margin: 0 auto;" 
+    loop autoplay>
+  </dotlottie-player>
+
+  <h3 class="mt-3">Upload Dataset Tweet</h3>
+
+  <form method="POST" enctype="multipart/form-data" onsubmit="return handleUpload(event)">
+    <div class="mb-3 text-start">
+      <label class="form-label">Pilih file CSV</label>
+      <input class="form-control" type="file" name="file" required>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+      <button type="submit" class="btn btn-success">Upload</button>
+      <a href="{{ url_for('preprocessing') }}" class="btn btn-success {% if not uploaded %}disabled{% endif %}" id="nextBtn">Selanjutnya</a>
+    </div>
+  </form>
+</div>
+
+{% if data %}
+<div class="container mt-5">
+  <h4 class="text-center mb-3">📊 Data Preview</h4>
+  <div id="dataCards" class="row row-cols-1 g-4"></div>
+</div>
+
+<script>
+  const data = {{ data|tojson }};
+  const itemsPerPage = 10;
+  let currentPage = 1;
+
+  function renderPage(page) {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageData = data.slice(start, end);
+    const container = document.getElementById("dataCards");
+    container.innerHTML = "";
+
+    const headers = Object.keys(data[0] || {}).filter(h => h !== 'id');
+    const tableHead = headers.map(key => `<th>${key}</th>`).join("");
+    const tableRows = pageData.map((item, index) => {
+      const rowCells = headers.map(h => {
+        const style = h.toLowerCase().includes("tweet") ? "style='max-width:200px; word-wrap:break-word; white-space:normal'" : "";
+        if (h.toLowerCase() === 'tweet_link' && item[h]) {
+          return `<td ${style}>
+                    <a href="${item[h]}" target="_blank" style="color: #1DA1F2; text-decoration: none;">
+                      <img src="https://abs.twimg.com/favicons/twitter.ico" style="width:14px; margin-right:5px;" />
+                      Link
+                    </a>
+                  </td>`;
+        }
+        return `<td ${style}>${item[h]}</td>`;
+      }).join("");
+      return `<tr><td><strong>${start + index + 1}</strong></td>${rowCells}</tr>`;
+    }).join("");
+
+    container.innerHTML = `
+      <div class="card bg-dark text-white shadow-sm">
+        <div class="card-header">
+          <strong>Preview Data (${start + 1} - ${Math.min(end, data.length)})</strong>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-dark table-striped table-bordered mb-0">
+              <thead>
+                <tr><th>No</th>${tableHead}</tr>
+              </thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+          </div>
+          <nav class="mt-3">
+            <ul class="pagination mb-0" id="pagination"></ul>
+          </nav>
+        </div>
+      </div>
+    `;
+
+    renderPagination();
+  }
+
+  function renderPagination() {
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+
+    const createPageItem = (page, label = null, active = false, disabled = false) => {
+      const li = document.createElement("li");
+      li.className = `page-item ${active ? "active" : ""} ${disabled ? "disabled" : ""}`;
+      li.innerHTML = `<a class="page-link" href="#">${label || page}</a>`;
+      if (!disabled && !active) {
+        li.addEventListener("click", (e) => {
+          e.preventDefault();
+          currentPage = page;
+          renderPage(currentPage);
+        });
+      }
+      return li;
+    };
+
+    const pageRange = 1;
+    const start = Math.max(2, currentPage - pageRange);
+    const end = Math.min(totalPages - 1, currentPage + pageRange);
+
+    pagination.appendChild(createPageItem(1, "1", currentPage === 1));
+    if (start > 2) pagination.appendChild(createPageItem(null, "...", false, true));
+
+    for (let i = start; i <= end; i++) {
+      pagination.appendChild(createPageItem(i, i, currentPage === i));
+    }
+
+    if (end < totalPages - 1) pagination.appendChild(createPageItem(null, "...", false, true));
+    if (totalPages > 1) pagination.appendChild(createPageItem(totalPages, totalPages, currentPage === totalPages));
+  }
+
+  renderPage(currentPage);
+</script>
+{% endif %}
+
+<script>
+  let loadingTimeout = null;
+
+  function handleUpload(e) {
+    e.preventDefault();
+    showLoading();
+    loadingTimeout = setTimeout(() => {
+      e.target.submit();
+    }, 1000);
+    return false;
+  }
+
+  function cancelLoading() {
+    clearTimeout(loadingTimeout);
+    hideLoading();
+  }
+
+  function showLoading() {
+    document.getElementById("loadingOverlay").classList.add("active");
+  }
+
+  function hideLoading() {
+    document.getElementById("loadingOverlay").classList.remove("active");
+  }
+
+  document.getElementById("nextBtn")?.addEventListener("click", function(e) {
+    if (!this.classList.contains("disabled")) {
+      showLoading();
+    } else {
+      e.preventDefault();
+    }
+  });
+</script>
+
+{% endblock %}

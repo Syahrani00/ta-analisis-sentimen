@@ -1,0 +1,187 @@
+{% extends 'layout.html' %}
+{% block title %}Model Klasifikasi{% endblock %}
+{% block page_title %}🧠 Pilih Model Klasifikasi{% endblock %}
+
+{% block content %}
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .card-custom {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+  }
+
+  .card-custom:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 35px rgba(0, 255, 200, 0.3);
+  }
+
+  .btn-success {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 10px;
+    animation: pulse 2s infinite;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.4);
+  }
+
+  .btn-success:hover {
+    background-color: #218838;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 12px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+  }
+
+  #loadingOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease-in-out, backdrop-filter 0.4s ease-in-out;
+    overflow: hidden;
+  }
+
+  #loadingOverlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  #loadingOverlay .text-center {
+    animation: fadeInUp 0.6s ease forwards;
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  @keyframes fadeInUp {
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  #loadingOverlay .cancel-btn {
+    margin-top: 20px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    font-size: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 77, 79, 0.4);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  #loadingOverlay .cancel-btn:hover {
+    background-color: #d9363e;
+    transform: scale(1.05);
+  }
+
+  /* Agar row tengah secara vertikal */
+  .model-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+
+<script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+
+<div class="container model-container">
+  <div class="row justify-content-center align-items-stretch fade-in w-100">
+    <div class="col-md-6 mb-4 d-flex">
+      <div class="card card-custom text-center w-100">
+        <dotlottie-player
+          src="https://lottie.host/3dcd6602-3852-4dc0-813c-91f2f6599c30/yVG1nvlzKy.lottie"
+          background="transparent"
+          speed="1"
+          style="width: 250px; height: 250px;"
+          loop autoplay>
+        </dotlottie-player>
+        <h5 class="mt-3">Support Vector Machine (SVM)</h5>
+        <p>Model klasifikasi dengan margin optimal</p>
+        <form method="POST" action="/model">
+          <input type="hidden" name="model" value="svm">
+          <button type="submit" class="btn btn-success">Gunakan Model Ini</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-4 d-flex">
+      <div class="card card-custom text-center w-100">
+        <dotlottie-player
+          src="https://lottie.host/3b63be19-5885-4d4a-9656-3fc0964d148a/kGlbSg4ABu.lottie"
+          background="transparent"
+          speed="1"
+          style="width: 250px; height: 250px;"
+          loop autoplay>
+        </dotlottie-player>
+        <h5 class="mt-3">Random Forest</h5>
+        <p>Model ensambel berbasis pohon keputusan</p>
+        <form method="POST" action="/model">
+          <input type="hidden" name="model" value="rf">
+          <button type="submit" class="btn btn-success">Gunakan Model Ini</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="loadingOverlay">
+  <div class="text-center">
+    <dotlottie-player
+      src="https://lottie.host/bb257a6c-1db2-4c84-9129-4797eb0e69c3/Dr5QAJHvTN.lottie"
+      background="transparent"
+      speed="1"
+      style="width: 250px; height: 250px;"
+      loop autoplay>
+    </dotlottie-player>
+    <button class="cancel-btn" onclick="cancelLoading()">Batal</button>
+  </div>
+</div>
+
+<script>
+  const modelForms = document.querySelectorAll('form[action="/model"]');
+  const loadingOverlay = document.getElementById("loadingOverlay");
+
+  modelForms.forEach(form => {
+    form.addEventListener("submit", function () {
+      loadingOverlay.classList.add("active");
+      document.body.style.overflow = "hidden";
+    });
+  });
+
+  function cancelLoading() {
+    loadingOverlay.classList.remove("active");
+    document.body.style.overflow = "";
+    window.location.reload();
+  }
+</script>
+{% endblock %}

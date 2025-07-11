@@ -1,0 +1,331 @@
+{% extends 'layout.html' %}
+{% block title %}Preprocessing{% endblock %}
+{% block page_title %}🧹 Preprocessing Teks Tweet{% endblock %}
+
+{% block content %}
+<style>
+  .card-custom {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .card-custom:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 35px rgba(0, 255, 200, 0.3);
+  }
+
+  .btn-success {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 10px;
+    animation: pulse 2s infinite;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.4);
+  }
+
+  .btn-success:hover {
+    background-color: #218838;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 12px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+  }
+
+  .table td, .table th {
+    word-wrap: break-word;
+    white-space: normal !important;
+    max-width: 200px;
+    font-size: 13px;
+    padding: 6px;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 0;
+  }
+
+  .page-item {
+    list-style: none;
+  }
+
+  .page-link {
+    display: inline-block;
+    background-color: transparent;
+    border: 1px solid #555;
+    color: #fff;
+    padding: 8px 14px;
+    min-width: 42px;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .page-link:hover {
+    background-color: #2e2e2e;
+  }
+
+  .page-item.active .page-link {
+    background-color: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+    font-weight: bold;
+    animation: pulse-active 1s infinite;
+  }
+
+  .page-item.disabled .page-link {
+    color: #999;
+    border: 1px solid #444;
+    pointer-events: none;
+    background-color: #1f1f1f;
+  }
+
+  #loadingOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease-in-out, backdrop-filter 0.4s ease-in-out;
+  }
+
+  #loadingOverlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  #loadingOverlay .text-center {
+    animation: fadeInUp 0.6s ease forwards;
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  @keyframes fadeInUp {
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  #loadingOverlay .cancel-btn {
+    margin-top: 20px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    font-size: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 77, 79, 0.4);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  #loadingOverlay .cancel-btn:hover {
+    background-color: #d9363e;
+    transform: scale(1.05);
+  }
+
+  .collapsible-box {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 2px solid #ffc107ec;
+    border-radius: 10px;
+    margin-top: 20px;
+    padding: 15px;
+    color: #000000;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+
+  .collapsible-content {
+    display: none;
+    margin-top: 10px;
+    animation: fadeIn 0.4s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .collapsible-box.active .collapsible-content {
+    display: block;
+  }
+
+  .collapsible-box:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+</style>
+
+<script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+
+<div class="row justify-content-center fade-in">
+  <div class="col-md-6">
+    <div class="card card-custom text-center">
+      <dotlottie-player
+        src="https://lottie.host/2c99cc2d-a5d5-4f8f-9059-2dfb28ed8836/c8FW4Lbrj2.lottie"
+        background="transparent"
+        speed="1"
+        style="width: 300px; height: 300px; margin: auto;"
+        loop autoplay>
+      </dotlottie-player>
+      <h5 class="mt-3">Preprocessing Data Teks</h5>
+      <p>Tekan tombol di bawah untuk membersihkan data teks sebelum diklasifikasikan.</p>
+
+      <div class="collapsible-box" onclick="this.classList.toggle('active')">
+        <strong>📌 Catatan:</strong> Klik untuk melihat daftar kata kunci yang diproses.
+        <div class="collapsible-content">
+          <ul style="padding-left: 20px; margin: 0; font-size: 14px;">
+            <li>gotong royong</li><li>daur ulang sampah</li><li>sungai bersih</li>
+            <li>pengelolaan sampah</li><li>gerakan hijau lingkungan</li><li>lingkungan bersih</li>
+            <li>pengolahan limbah</li><li>pengelolaan sampah plastik</li><li>pencemaran air</li>
+            <li>bank sampah</li><li>solusi banjir</li><li>CSR lingkungan</li><li>reboisasi</li>
+            <li>penanaman pohon</li><li>pembersihan sungai</li><li>polusi udara</li><li>sampah plastik</li>
+            <li>banjir bandang</li><li>kebakaran hutan</li><li>limbah industri</li><li>tumpukan sampah</li>
+            <li>buang sampah sembarangan</li><li>sungai tercemar</li><li>tempat pembuangan sampah</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-4">
+        <form method="POST" action="/preprocessing">
+          <button type="submit" class="btn btn-success">🧹 Bersihkan Teks</button>
+        </form>
+        <a href="{{ url_for('model') }}" class="btn btn-success {% if not preprocessed_data %}disabled{% endif %}">Selanjutnya →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if preprocessed_data %}
+<div class="container mt-5">
+  <h4 class="text-center mb-3">📊 Hasil Preprocessing</h4>
+  <div id="dataCards" class="row row-cols-1 g-4"></div>
+</div>
+
+<script>
+  const data = {{ preprocessed_data|tojson }};
+  const itemsPerPage = 10;
+  let currentPage = 1;
+  const headers = ['tweet', 'tweet_link', 'username', 'waktu', 'text_clean'];
+
+  function renderPage(page) {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageData = data.slice(start, end);
+    const container = document.getElementById("dataCards");
+    container.innerHTML = "";
+
+    const tableHead = headers.map(key => `<th>${key}</th>`).join("");
+    const tableRows = pageData.map((item, index) => {
+      const rowCells = headers.map(h => {
+        const value = item[h] || '';
+        if (h === 'tweet_link' && value) {
+          return `<td><a href="${value}" target="_blank" style="color: #1DA1F2; text-decoration: none;">
+              <img src="https://abs.twimg.com/favicons/twitter.ico" style="width:14px; margin-right:5px;" />Link
+            </a></td>`;
+        }
+        return `<td>${value}</td>`;
+      }).join("");
+      return `<tr><td><strong>${start + index + 1}</strong></td>${rowCells}</tr>`;
+    }).join("");
+
+    container.innerHTML = `
+      <div class="card bg-dark text-white shadow-sm">
+        <div class="card-header"><strong>Preview (${start + 1} - ${Math.min(end, data.length)})</strong></div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-dark table-striped table-bordered mb-0">
+              <thead><tr><th>No</th>${tableHead}</tr></thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+          </div>
+          <nav class="mt-3 d-flex justify-content-center">
+            <ul class="pagination mb-0" id="pagination"></ul>
+          </nav>
+        </div>
+      </div>`;
+    renderPagination();
+  }
+
+  function renderPagination() {
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+
+    const createPageItem = (page, label = null, active = false, disabled = false) => {
+      const li = document.createElement("li");
+      li.className = `page-item ${active ? "active" : ""} ${disabled ? "disabled" : ""}`;
+      li.innerHTML = `<a class="page-link" href="#">${label || page}</a>`;
+      if (!disabled && !active) {
+        li.addEventListener("click", (e) => {
+          e.preventDefault();
+          currentPage = page;
+          renderPage(currentPage);
+        });
+      }
+      return li;
+    };
+
+    const pageRange = 1;
+    const start = Math.max(2, currentPage - pageRange);
+    const end = Math.min(totalPages - 1, currentPage + pageRange);
+
+    pagination.appendChild(createPageItem(1, "1", currentPage === 1));
+    if (start > 2) pagination.appendChild(createPageItem(null, "...", false, true));
+    for (let i = start; i <= end; i++) {
+      pagination.appendChild(createPageItem(i, i, currentPage === i));
+    }
+    if (end < totalPages - 1) pagination.appendChild(createPageItem(null, "...", false, true));
+    if (totalPages > 1) pagination.appendChild(createPageItem(totalPages, totalPages, currentPage === totalPages));
+  }
+
+  renderPage(currentPage);
+</script>
+{% endif %}
+
+<div id="loadingOverlay">
+  <div class="text-center">
+    <dotlottie-player
+      src="https://lottie.host/bb257a6c-1db2-4c84-9129-4797eb0e69c3/Dr5QAJHvTN.lottie"
+      background="transparent"
+      speed="1"
+      style="width: 250px; height: 250px;"
+      loop autoplay>
+    </dotlottie-player>
+    <button class="cancel-btn" onclick="cancelLoading()">Batal</button>
+  </div>
+</div>
+
+<script>
+  const preprocessingForm = document.querySelector('form[action="/preprocessing"]');
+  const loadingOverlay = document.getElementById("loadingOverlay");
+
+  preprocessingForm.addEventListener("submit", function () {
+    loadingOverlay.classList.add("active");
+  });
+
+  function cancelLoading() {
+    loadingOverlay.classList.remove("active");
+    window.location.reload();
+  }
+</script>
+{% endblock %}
